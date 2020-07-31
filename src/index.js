@@ -2,6 +2,8 @@ const SpotifyWebApi = require('spotify-web-api-node');
 
 const mongoose = require('mongoose');
 
+const getData = require('./get-data');
+
 const express = require('express');
 const morgan = require('morgan');
 const helmet = require('helmet');
@@ -12,11 +14,11 @@ require('dotenv').config();
 // -------------------------------
 // Connect to mongodb DB
 mongoose.connect(process.env.MONGO_DB_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-  .then(() => console.log("Connected to mongodb"))
-  .catch(err => console.log("Couldn't connect to mongodb", err));
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+  .then(() => console.log('Connected to mongodb'))
+  .catch((err) => console.log("Couldn't connect to mongodb", err));
 
 // -------------------------------
 // Setup spotify
@@ -27,29 +29,36 @@ const spotifyApi = new SpotifyWebApi({
   redirectUri: process.env.SPOTIFY_REDIRECT_URI
 });
 
-
 spotifyApi.clientCredentialsGrant()
-  .then(data => {
-    console.log('The access token expires in ' + data.body['expires_in']);
-    console.log('The access token is ' + data.body['access_token']);
+  .then((data) => {
+    // console.log(`The access token expires in ${data.body.expires_in}`);
+    // console.log(`The access token is ${data.body.access_token}`);
 
     // Save the access token so that it's used in future calls
-    spotifyApi.setAccessToken(data.body['access_token']);
+    spotifyApi.setAccessToken(data.body.access_token);
+
+    try {
+      getData(spotifyApi);
+    } catch (error) {
+      console.error(error);
+    }
   })
-  .catch(err => {
+  .catch((err) => {
     console.log(
       'Something went wrong when retrieving an access token',
       err.message
     );
-  })
-
-
+  });
 
 // -------------------------------
 // Setup express
 
-const middlewares = require('./middlewares');
+const {
+  response
+} = require('express');
 const api = require('./api');
+const Album = require('./models/album.js');
+const middlewares = require('./middlewares');
 
 const app = express();
 
