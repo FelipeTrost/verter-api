@@ -1,11 +1,22 @@
 const SpotifyWebApi = require('spotify-web-api-node');
 
+const mongoose = require('mongoose');
+
 const express = require('express');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const cors = require('cors');
 
 require('dotenv').config();
+
+// -------------------------------
+// Connect to mongodb DB
+mongoose.connect(process.env.MONGO_DB_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
+  .then(() => console.log("Connected to mongodb"))
+  .catch(err => console.log("Couldn't connect to mongodb", err));
 
 // -------------------------------
 // Setup spotify
